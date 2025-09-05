@@ -8,39 +8,29 @@ import * as mongoose from 'mongoose';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Setup Swagger only in dev mode
-  if (process.env.NODE_ENV !== 'production') {
-    swaggerModuleConfig(app);
-  }
+  // Setup Swagger for API documentation
+  swaggerModuleConfig(app);
 
-  // Enable CORS
+  // Enable CORS to allow requests from frontend
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'https://chirayuacademy.edu.np',
-      'https://rayueducationalacademy.netlify.app',
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
-
-  // Serve uploads
+  origin: [
+    'http://localhost:3000',
+    'https://chirayuacademy.edu.np',
+    'https://rayueducationalacademy.netlify.app',
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+});
   app.use('/uploads', express.static('uploads'));
 
-  // Global validation
+  // Use global pipes for validation
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  // Connect to MongoDB
-  if (!process.env.MONGO_URI) {
-    throw new Error('MONGO_URI environment variable not set');
-  }
-  await mongoose.connect(process.env.MONGO_URI);
-
-  // Listen on Render-assigned port
-  const port = process.env.PORT || 3030;
-  await app.listen(port, () =>
-    console.log(`Server running on port ${port}`),
-  );
+  // Start the NestJS application on port 3030
+  await app.listen(3030);
 }
+
+mongoose.connection.on('connected', () => console.log('MongoDB connected'));
+mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
 
 bootstrap();

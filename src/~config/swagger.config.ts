@@ -27,5 +27,5 @@ export const swaggerModuleConfig = (app: INestApplication) => {
   const rootApiDocument = SwaggerModule.createDocument(app, swaggerConfig, {
     include: [AuthModule, UsersModule, NoticesModule, ResultsModule, GalleryModule, EventsModule],
   });
-  SwaggerModule.setup('api', app, rootApiDocument);
+  SwaggerModule.setup('/', app, rootApiDocument);
 };
