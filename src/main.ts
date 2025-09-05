@@ -13,10 +13,14 @@ async function bootstrap() {
 
   // Enable CORS to allow requests from frontend
   app.enableCors({
-    origin: 'http://localhost:3000', 
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  origin: [
+    'http://localhost:3000',
+    'https://chirayuacademy.edu.np',
+    'https://rayueducationalacademy.netlify.app',
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+});
   app.use('/uploads', express.static('uploads'));
 
   // Use global pipes for validation
