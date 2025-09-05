@@ -5,15 +5,15 @@ import { swaggerModuleConfig } from './~config/swagger.config';
 import * as express from 'express';
 import * as mongoose from 'mongoose';
 
-let server: any; // cache server for Vercel
+let server: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Setup Swagger for API documentation
+  // Setup Swagger
   swaggerModuleConfig(app);
 
-  // Enable CORS for frontend
+  // Enable CORS
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -24,23 +24,18 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Static uploads folder
   app.use('/uploads', express.static('uploads'));
-
-  // Use global pipes for validation
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  await app.init(); // ❌ don’t use app.listen on Vercel
+  await app.init(); // no listen()
   return app.getHttpAdapter().getInstance();
 }
 
-// Mongo connection logs
+// MongoDB events
 mongoose.connection.on('connected', () => console.log('MongoDB connected'));
-mongoose.connection.on('error', (err) =>
-  console.error('MongoDB connection error:', err),
-);
+mongoose.connection.on('error', (err) => console.error('MongoDB error:', err));
 
-// Exported handler for Vercel
+// Export handler for Vercel
 export default async function handler(req: any, res: any) {
   if (!server) {
     server = await bootstrap();
@@ -48,11 +43,11 @@ export default async function handler(req: any, res: any) {
   return server(req, res);
 }
 
-// ✅ Local development support
+// Local dev only
 if (process.env.NODE_ENV !== 'production') {
-  bootstrap().then((app) => {
+  bootstrap().then((app) =>
     app.listen(3030, () =>
-      console.log(`NestJS running locally at http://localhost:3030`),
-    );
-  });
+      console.log('NestJS running at http://localhost:3030'),
+    ),
+  );
 }
