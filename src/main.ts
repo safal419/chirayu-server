@@ -5,13 +5,13 @@ import { swaggerModuleConfig } from './~config/swagger.config';
 import * as express from 'express';
 import * as mongoose from 'mongoose';
 
-let server: any;
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Setup Swagger
-  swaggerModuleConfig(app);
+  // Setup Swagger only in dev mode
+  if (process.env.NODE_ENV !== 'production') {
+    swaggerModuleConfig(app);
+  }
 
   // Enable CORS
   app.enableCors({
@@ -24,30 +24,23 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Serve uploads
   app.use('/uploads', express.static('uploads'));
+
+  // Global validation
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  await app.init(); // no listen()
-  return app.getHttpAdapter().getInstance();
-}
-
-// MongoDB events
-mongoose.connection.on('connected', () => console.log('MongoDB connected'));
-mongoose.connection.on('error', (err) => console.error('MongoDB error:', err));
-
-// Export handler for Vercel
-export default async function handler(req: any, res: any) {
-  if (!server) {
-    server = await bootstrap();
+  // Connect to MongoDB
+  if (!process.env.MONGO_URI) {
+    throw new Error('MONGO_URI environment variable not set');
   }
-  return server(req, res);
-}
+  await mongoose.connect(process.env.MONGO_URI);
 
-// Local dev only
-if (process.env.NODE_ENV !== 'production') {
-  bootstrap().then((app) =>
-    app.listen(3030, () =>
-      console.log('NestJS running at http://localhost:3030'),
-    ),
+  // Listen on Render-assigned port
+  const port = process.env.PORT || 3030;
+  await app.listen(port, () =>
+    console.log(`Server running on port ${port}`),
   );
 }
+
+bootstrap();
