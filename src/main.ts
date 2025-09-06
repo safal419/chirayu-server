@@ -1,7 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { swaggerModuleConfig } from './~config/swagger.config';
 import * as express from 'express';
 import * as mongoose from 'mongoose';
 
@@ -9,11 +8,6 @@ let server: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // Swagger (optional in dev mode only)
-  if (process.env.NODE_ENV !== 'production') {
-    swaggerModuleConfig(app);
-  }
 
   // Enable CORS
   app.enableCors({
