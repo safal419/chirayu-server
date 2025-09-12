@@ -16,32 +16,35 @@ exports.FileService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const fs = require("fs");
-const path = require("path");
+const multer_config_1 = require("../../multer-config");
 let FileService = class FileService {
     constructor(fileModel) {
         this.fileModel = fileModel;
     }
     async uploadFiles(files) {
+        if (!files || files.length === 0)
+            return [];
         try {
-            const filePromises = files.map(async (file) => {
-                const filePath = file.path;
-                const fileContent = fs.readFileSync(filePath);
-                fs.writeFileSync(filePath, fileContent);
-                let relativePath = path.relative('uploads', filePath);
-                relativePath = process.env.HOST + '/uploads/' + relativePath;
+            const uploads = await Promise.all(files.map(async (file) => {
+                if (!file.buffer) {
+                    throw new Error('File buffer is missing. Use memoryStorage for multer.');
+                }
+                const folder = process.env.CLOUDINARY_FOLDER || 'uploads';
+                const result = await (0, multer_config_1.uploadBufferToCloudinary)(file.buffer, folder);
                 const createdFile = new this.fileModel({
                     name: file.originalname,
-                    path: relativePath,
+                    path: result.secure_url,
+                    publicId: result.public_id,
+                    raw: result,
                 });
                 await createdFile.save();
-                return relativePath;
-            });
-            return Promise.all(filePromises);
+                return result.secure_url;
+            }));
+            return uploads;
         }
         catch (error) {
-            console.error(error);
-            throw new Error('Error uploading files');
+            console.error('FileService.uploadFiles error', error);
+            throw error;
         }
     }
 };

@@ -12,37 +12,32 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FileController = void 0;
+exports.FilesController = void 0;
 const openapi = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
-const multer_1 = require("multer");
-const storage = (0, multer_1.diskStorage)({
-    destination: './uploads',
-    filename: (req, file, cb) => {
-        const filename = `${Date.now()}-${file.originalname}`;
-        cb(null, filename);
-    },
-});
-let FileController = class FileController {
-    constructor() { }
-    async uploadFiles(files) {
-        const paths = files.map(file => `http://localhost:3030/uploads/${file.filename}`);
-        return { message: 'Files uploaded successfully', paths };
+const multer_config_1 = require("../../multer-config");
+let FilesController = class FilesController {
+    async upload(files) {
+        const folder = 'image';
+        const results = await Promise.all(files.map((file) => (0, multer_config_1.uploadBufferToCloudinary)(file.buffer, folder)));
+        return {
+            urls: results.map((r) => r.secure_url),
+            publicIds: results.map((r) => r.public_id),
+        };
     }
 };
-exports.FileController = FileController;
+exports.FilesController = FilesController;
 __decorate([
     (0, common_1.Post)('upload'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('files', 10, { storage })),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('files', 10, multer_config_1.multerOptions)),
     openapi.ApiResponse({ status: 201 }),
     __param(0, (0, common_1.UploadedFiles)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", Promise)
-], FileController.prototype, "uploadFiles", null);
-exports.FileController = FileController = __decorate([
-    (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [])
-], FileController);
+], FilesController.prototype, "upload", null);
+exports.FilesController = FilesController = __decorate([
+    (0, common_1.Controller)('files')
+], FilesController);
 //# sourceMappingURL=file.controller.js.map

@@ -1,31 +1,20 @@
 import { Controller, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { join } from 'path';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { multerOptions, uploadBufferToCloudinary } from '../../multer-config';
 
-const storage = diskStorage({
-  destination: './uploads',
-  filename: (req, file, cb) => {
-    const filename = `${Date.now()}-${file.originalname}`;
-    cb(null, filename);
-  },
-});
-
-@Controller()
-export class FileController {
-  constructor(
-  ) {}
-
+@Controller('files')
+export class FilesController {
   @Post('upload')
-  @UseInterceptors(FilesInterceptor('files', 10, { storage }))
-  async uploadFiles(@UploadedFiles() files: Array<Express.Multer.File>): Promise<{ message: string, paths: string[] }> {
-    const paths = files.map(file => `http://localhost:3030/uploads/${file.filename}`);
+  @UseInterceptors(FilesInterceptor('files', 10, multerOptions)) 
+  async upload(@UploadedFiles() files: Express.Multer.File[]) {
+    const folder = 'image';
+    const results = await Promise.all(
+      files.map((file) => uploadBufferToCloudinary(file.buffer, folder))
+    );
 
-    // If you want to save files to the database, you can do it here
-    // const createdFiles = await this.uploadedFileModel.create(files.map(file => ({ filename: file.filename, path: `http://localhost:3004/uploads/${file.filename}` })));
-
-    return { message: 'Files uploaded successfully', paths };
+    return {
+      urls: results.map((r) => r.secure_url),
+      publicIds: results.map((r) => r.public_id),
+    };
   }
 }

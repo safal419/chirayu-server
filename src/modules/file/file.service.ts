@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as fs from 'fs';
-import * as path from 'path';
 import { File } from './file.model';
+import { uploadBufferToCloudinary } from '../../multer-config';
 
 @Injectable()
 export class FileService {
@@ -12,29 +11,39 @@ export class FileService {
   ) {}
 
   async uploadFiles(files: Express.Multer.File[]): Promise<string[]> {
+    if (!files || files.length === 0) return [];
+
     try {
-      const filePromises = files.map(async (file) => {
-        const filePath = file.path;
-        const fileContent = fs.readFileSync(filePath);
-        fs.writeFileSync(filePath, fileContent);
+      const uploads = await Promise.all(
+        files.map(async (file) => {
+          // ensure buffer present (use memoryStorage in multer)
+          if (!file.buffer) {
+            throw new Error('File buffer is missing. Use memoryStorage for multer.');
+          }
 
-        let relativePath = path.relative('uploads', filePath);
-        relativePath = process.env.HOST + '/uploads/' + relativePath;
+          // choose a folder name (adjust as needed)
+          const folder = process.env.CLOUDINARY_FOLDER || 'uploads';
 
-        const createdFile = new this.fileModel({
-          name: file.originalname,
-          path: relativePath,
-        });
+          const result = await uploadBufferToCloudinary(file.buffer, folder);
 
-        await createdFile.save();
+          const createdFile = new this.fileModel({
+            name: file.originalname,
+            path: result.secure_url,
+            publicId: result.public_id,
+            raw: result,
+          });
 
-        return relativePath;
-      });
+          await createdFile.save();
 
-      return Promise.all(filePromises);
+          return result.secure_url;
+        }),
+      );
+
+      return uploads;
     } catch (error) {
-      console.error(error);
-      throw new Error('Error uploading files');
+      // eslint-disable-next-line no-console
+      console.error('FileService.uploadFiles error', error);
+      throw error;
     }
   }
 }

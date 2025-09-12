@@ -17,6 +17,8 @@ const notices_module_1 = require("./modules/notices/notices.module");
 const events_module_1 = require("./modules/events/events.module");
 const gallery_module_1 = require("./modules/gallery/gallery.module");
 const results_module_1 = require("./modules/results/results.module");
+const article_module_1 = require("./modules/article/article.module");
+const alumni_module_1 = require("./modules/alumni/alumni.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,13 +26,7 @@ exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true }),
-            mongoose_1.MongooseModule.forRootAsync({
-                imports: [config_1.ConfigModule],
-                inject: [config_1.ConfigService],
-                useFactory: (cs) => ({
-                    uri: cs.get('MONGO_URI'),
-                }),
-            }),
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || ''),
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             file_module_1.FileModule,
@@ -38,6 +34,8 @@ exports.AppModule = AppModule = __decorate([
             events_module_1.EventsModule,
             gallery_module_1.GalleryModule,
             results_module_1.ResultsModule,
+            article_module_1.ArticlesModule,
+            alumni_module_1.AlumniModule
         ],
         controllers: [],
         providers: [],

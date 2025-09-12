@@ -1,7 +1,6 @@
-export declare class FileController {
-    constructor();
-    uploadFiles(files: Array<Express.Multer.File>): Promise<{
-        message: string;
-        paths: string[];
+export declare class FilesController {
+    upload(files: Express.Multer.File[]): Promise<{
+        urls: any[];
+        publicIds: any[];
     }>;
 }

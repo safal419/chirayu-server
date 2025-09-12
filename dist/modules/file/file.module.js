@@ -9,16 +9,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const file_controller_1 = require("./file.controller");
 const file_service_1 = require("./file.service");
 const file_model_1 = require("./file.model");
+const file_controller_1 = require("./file.controller");
 let FileModule = class FileModule {
 };
 exports.FileModule = FileModule;
 exports.FileModule = FileModule = __decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: 'File', schema: file_model_1.FileSchema }])],
-        controllers: [file_controller_1.FileController],
+        controllers: [file_controller_1.FilesController],
         providers: [file_service_1.FileService],
         exports: [file_service_1.FileService],
     })

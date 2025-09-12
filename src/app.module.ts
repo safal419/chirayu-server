@@ -8,17 +8,13 @@ import { NoticesModule } from './modules/notices/notices.module';
 import { EventsModule } from './modules/events/events.module';
 import { GalleryModule } from './modules/gallery/gallery.module';
 import { ResultsModule } from './modules/results/results.module';
+import { ArticlesModule } from './modules/article/article.module';
+import { AlumniModule } from './modules/alumni/alumni.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (cs: ConfigService) => ({
-        uri: cs.get<string>('MONGO_URI'),
-      }),
-    }),
+    MongooseModule.forRoot(process.env.MONGO_URI || ''),
     UsersModule,
     AuthModule,
     FileModule,
@@ -26,6 +22,8 @@ import { ResultsModule } from './modules/results/results.module';
     EventsModule,
     GalleryModule,
     ResultsModule,
+    ArticlesModule,
+    AlumniModule
     
 
   ],
