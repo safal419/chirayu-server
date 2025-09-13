@@ -17,7 +17,12 @@ async function bootstrap() {
     });
     app.use('/uploads', express.static('uploads'));
     app.useGlobalPipes(new common_1.ValidationPipe({ transform: true }));
-    await app.listen(process.env.PORT);
+    const port = Number(process.env.PORT) || 3030;
+    await app.listen(port);
+    console.log(`Application is running on: ${await app.getUrl()}`);
 }
-bootstrap();
+if (process.env.NODE_ENV !== 'serverless') {
+    bootstrap();
+}
+exports.default = bootstrap;
 //# sourceMappingURL=main.js.map
